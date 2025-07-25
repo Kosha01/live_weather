@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+</head>
+<body>
+    <h1>Weather Prediction Result</h1>
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% else %}
+        {% if city %}
+            <h3>City: {{ city }}</h3>
+        {% endif %}
+        <h3>Current Conditions:</h3>
+        <p>Temperature: {{ forecast.current_conditions.temp }} °C</p>
+        <p>Humidity: {{ forecast.current_conditions.humidity }} %</p>
+        <p>Pressure: {{ forecast.current_conditions.pressure }} hPa</p>
+        <p>Wind Speed: {{ forecast.current_conditions.wind_speed }} km/h</p>
+    {% endif %}
+    <br>
+    <a href="/">Go Back</a>
+</body>
+</html>

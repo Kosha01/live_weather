@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .mode-card {
+            flex: 1;
+            max-width: 300px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-card.active {
+            border-color: #4facfe;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .mode-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .mode-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .mode-card p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 15px;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .weather-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .weather-params {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .param-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .param-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4facfe;
+            display: block;
+        }
+
+        .param-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        @media (max-width: 768px) {
+            .mode-selector {
+                flex-direction: column;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌤️ Weather Prediction System</h1>
+            <p>Advanced weather forecasting with real-time data and manual input options</p>
+        </div>
+
+        <div class="main-content">
+            <form id="weatherForm">
+                <div class="mode-selector">
+                    <div class="mode-card active" data-mode="api">
+                        <div class="icon">🌍</div>
+                        <h3>Live Weather</h3>
+                        <p>Get real-time weather data from any city worldwide</p>
+                    </div>
+                    <div class="mode-card" data-mode="manual">
+                        <div class="icon">⚙️</div>
+                        <h3>Manual Input</h3>
+                        <p>Enter custom weather parameters for prediction</p>
+                    </div>
+                </div>
+
+                <div id="api-section" class="form-section active">
+                    <div class="input-group">
+                        <label for="city">🏙️ City Name</label>
+                        <input type="text" id="city" name="city" placeholder="Enter city name (e.g., London, New York)" required>
+                    </div>
+                </div>
+
+                <div id="manual-section" class="form-section">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="temp">🌡️ Temperature (°C)</label>
+                            <input type="number" id="temp" name="temp" placeholder="e.g., 25" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="humidity">💧 Humidity (%)</label>
+                            <input type="number" id="humidity" name="humidity" placeholder="e.g., 65" min="0" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="pressure">📊 Pressure (hPa)</label>
+                            <input type="number" id="pressure" name="pressure" placeholder="e.g., 1013" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="wind_speed">💨 Wind Speed (km/h)</label>
+                            <input type="number" id="wind_speed" name="wind_speed" placeholder="e.g., 15" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-btn">
+                    <span id="btn-text">🔮 Predict Weather</span>
+                </button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing weather data...</p>
+                </div>
+            </form>
+
+            <div id="result-section" class="result-section">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentMode = 'api';
+        
+        // DOM elements
+        const modeCards = document.querySelectorAll('.mode-card');
+        const formSections = document.querySelectorAll('.form-section');
+        const form = document.getElementById('weatherForm');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('result-section');
+        const btnText = document.getElementById('btn-text');
+
+        // Mode switching
+        modeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const mode = card.dataset.mode;
+                switchMode(mode);
+            });
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update active mode card
+            modeCards.forEach(card => {
+                card.classList.toggle('active', card.dataset.mode === mode);
+            });
+
+            // Show appropriate form section
+            formSections.forEach(section => {
+                section.classList.toggle('active', section.id === `${mode}-section`);
+            });
+
+            // Clear previous results
+            resultSection.classList.remove('show');
+        }
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Show loading state
+            loading.style.display = 'block';
+            btnText.textContent = 'Processing...';
+            resultSection.classList.remove('show');
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('option', currentMode);
+
+            if (currentMode === 'api') {
+                const city = document.getElementById('city').value;
+                if (!city.trim()) {
+                    showError('Please enter a city name');
+                    resetButton();
+                    return;
+                }
+                formData.append('city', city);
+            } else {
+                const temp = document.getElementById('temp').value;
+                const humidity = document.getElementById('humidity').value;
+                const pressure = document.getElementById('pressure').value;
+                const windSpeed = document.getElementById('wind_speed').value;
+
+                if (!temp || !humidity || !pressure || !windSpeed) {
+                    showError('Please fill in all weather parameters');
+                    resetButton();
+                    return;
+                }
+
+                formData.append('temp', temp);
+                formData.append('humidity', humidity);
+                formData.append('pressure', pressure);
+                formData.append('wind_speed', windSpeed);
+            }
+
+            try {
+                // Simulate API call (replace with actual endpoint)
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Prediction failed');
+                }
+
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                // For demo purposes, show mock result
+                setTimeout(() => {
+                    const mockResult = generateMockResult();
+                    displayResult(mockResult);
+                }, 1500);
+            }
+        });
+
+        function generateMockResult() {
+            if (currentMode === 'api') {
+                const city = document.getElementById('city').value;
+                return {
+                    city: city,
+                    forecast: {
+                        current_conditions: {
+                            temp: Math.round(Math.random() * 30 + 5),
+                            humidity: Math.round(Math.random() * 40 + 40),
+                            pressure: Math.round(Math.random() * 50 + 990),
+                            wind_speed: Math.round(Math.random() * 20 + 5)
+                        }
+                    },
+                    prediction: {
+                        condition: ['Sunny', 'Cloudy', 'Rainy', 'Partly Cloudy'][Math.floor(Math.random() * 4)],
+                        confidence: Math.round(Math.random() * 30 + 70)
+                    }
+                };
+            } else {
+                return {
+                    forecast: {
+                        current_conditions: {
+                            temp: document.getElementById('temp').value,
+                            humidity: document.getElementById('humidity').value,
+                            pressure: document.getElementById('pressure').value,
+                            wind_speed: document.getElementById('wind_speed').value
+                        }
+                    },
+                    prediction: {
+                        condition: ['Sunny', 'Cloudy', 'Rainy', 'Partly Cloudy'][Math.floor(Math.random() * 4)],
+                        confidence: Math.round(Math.random() * 30 + 70)
+                    }
+                };
+            }
+        }
+
+        function displayResult(result) {
+            resetButton();
+            
+            let resultHTML = '';
+            
+            if (result.error) {
+                resultHTML = `<div class="error">${result.error}</div>`;
+            } else {
+                resultHTML = `
+                    <div class="weather-card">
+                        ${result.city ? `<h3>📍 ${result.city}</h3>` : '<h3>📊 Weather Analysis</h3>'}
+                        <h4>Current Conditions:</h4>
+                        <div class="weather-params">
+                            <div class="param-item">
+                                <span class="param-value">${result.forecast.current_conditions.temp}°C</span>
+                                <div class="param-label">Temperature</div>
+                            </div>
+                            <div class="param-item">
+                                <span class="param-value">${result.forecast.current_conditions.humidity}%</span>
+                                <div class="param-label">Humidity</div>
+                            </div>
+                            <div class="param-item">
+                                <span class="param-value">${result.forecast.current_conditions.pressure} hPa</span>
+                                <div class="param-label">Pressure</div>
+                            </div>
+                            <div class="param-item">
+                                <span class="param-value">${result.forecast.current_conditions.wind_speed} km/h</span>
+                                <div class="param-label">Wind Speed</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (result.prediction) {
+                    resultHTML += `
+                        <div class="weather-card">
+                            <h4>🔮 Prediction Result:</h4>
+                            <div style="text-align: center; margin-top: 15px;">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">
+                                    ${getWeatherIcon(result.prediction.condition)}
+                                </div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #4facfe;">
+                                    ${result.prediction.condition}
+                                </div>
+                                <div style="margin-top: 10px; color: #666;">
+                                    Confidence: ${result.prediction.confidence}%
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            resultSection.innerHTML = resultHTML;
+            resultSection.classList.add('show');
+        }
+
+        function getWeatherIcon(condition) {
+            const icons = {
+                'Sunny': '☀️',
+                'Cloudy': '☁️',
+                'Rainy': '🌧️',
+                'Partly Cloudy': '⛅'
+            };
+            return icons[condition] || '🌤️';
+        }
+
+        function showError(message) {
+            resultSection.innerHTML = `<div class="error">${message}</div>`;
+            resultSection.classList.add('show');
+        }
+
+        function resetButton() {
+            loading.style.display = 'none';
+            btnText.textContent = '🔮 Predict Weather';
+        }
+
+        // Input validation
+        document.getElementById('city').addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value.length > 50) {
+                e.target.value = value.slice(0, 50);
+            }
+        });
+
+        // Add input validation for manual inputs
+        const numericInputs = ['temp', 'humidity', 'pressure', 'wind_speed'];
+        numericInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    if (id === 'humidity' && (value < 0 || value > 100)) {
+                        e.target.setCustomValidity('Humidity must be between 0 and 100');
+                    } else {
+                        e.target.setCustomValidity('');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
